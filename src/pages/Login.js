@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import { saveEmail as saveEmailACTION } from '../redux/actions';
 
 const MIN_LENGTH = 6;
@@ -96,5 +97,9 @@ const mapDispatchToProps = (dispatch) => ({
 const mapStateToProps = (state) => ({
   user: state.user,
 });
+
+Login.propTypes = {
+  saveEmail: PropTypes.func.isRequired,
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);
