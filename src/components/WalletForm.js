@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
   saveCurrencies as saveCurrenciesACTION,
-  addExpenses as addExpenseACTION,
+  addExpense as addExpenseACTION,
 } from '../redux/actions';
 
 class WalletForm extends Component {

@@ -8,7 +8,11 @@ class Header extends Component {
     return (
       <div>
         <p data-testid="email-field">{email}</p>
-        <p data-testid="total-field">{totalExpenses.toFixed(2)}</p>
+        <p data-testid="total-field">
+          {totalExpenses.toFixed(2) === '-0.00'
+            ? '0.00'
+            : totalExpenses.toFixed(2)}
+        </p>
         <p data-testid="header-currency-field">{currentCurrency}</p>
       </div>
     );
