@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {
   saveCurrencies as saveCurrenciesACTION,
   addExpense as addExpenseACTION,
+  editExpense as editExpenseACTION,
 } from '../redux/actions';
 
 class WalletForm extends Component {
@@ -55,6 +56,19 @@ class WalletForm extends Component {
     });
   };
 
+  handleEdit = () => {
+    const { editExpense } = this.props;
+    const { value, description, currency, method, tag } = this.state;
+
+    editExpense({
+      value,
+      description,
+      currency,
+      method,
+      tag,
+    });
+  };
+
   async fetchCurrencies() {
     const { saveCurrencies } = this.props;
 
@@ -74,7 +88,7 @@ class WalletForm extends Component {
   }
 
   render() {
-    const { currencies } = this.props;
+    const { currencies, isEditing } = this.props;
     const { value, description, currency, method, tag } = this.state;
     return (
       <>
@@ -133,8 +147,11 @@ class WalletForm extends Component {
             <option>Saúde</option>
           </select>
         </form>
-        <button type="button" onClick={ this.addExpenseToState }>
-          Adicionar despesa
+        <button
+          type="button"
+          onClick={ isEditing ? this.handleEdit : this.addExpenseToState }
+        >
+          {isEditing ? 'Editar despesa' : 'Adicionar despesa'}
         </button>
       </>
     );
@@ -144,15 +161,19 @@ class WalletForm extends Component {
 const mapDispatchToProps = (dispatch) => ({
   saveCurrencies: (currencies) => dispatch(saveCurrenciesACTION(currencies)),
   addExpense: (expense) => dispatch(addExpenseACTION(expense)),
+  editExpense: (editedExpense) => dispatch(editExpenseACTION(editedExpense)),
 });
 const mapStateToProps = (state) => ({
   currencies: state.wallet.currencies,
+  isEditing: state.wallet.isEditing,
 });
 
 WalletForm.propTypes = {
   addExpense: PropTypes.func.isRequired,
   currencies: PropTypes.arrayOf(PropTypes.string).isRequired,
   saveCurrencies: PropTypes.func.isRequired,
+  isEditing: PropTypes.bool.isRequired,
+  editExpense: PropTypes.func.isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(WalletForm);

@@ -1,6 +1,12 @@
 // Esse reducer será responsável por tratar o todas as informações relacionadas as despesas
 
-import { ADD_EXPENSE, REMOVE_EXPENSE, SAVE_CURRENCIES } from '../actions';
+import {
+  ADD_EXPENSE,
+  EDIT_EXPENSE,
+  REMOVE_EXPENSE,
+  SAVE_CURRENCIES,
+  SET_IS_EDITING,
+} from '../actions';
 
 const INITIAL_STATE = {
   totalExpenses: 0,
@@ -8,7 +14,62 @@ const INITIAL_STATE = {
   currencies: [],
   expenses: [],
   idToEdit: 0,
+  isEditing: false,
 };
+
+function addExpenseToArray(state, action) {
+  const id = state.expenses.length;
+  const newExpenses = [...state.expenses];
+  const expenseToAdd = action.expense;
+  expenseToAdd.id = id;
+  newExpenses.push(expenseToAdd);
+  return newExpenses;
+}
+
+function removeExpenseFromArray(state, action) {
+  const expenseToRemove = action.expense;
+
+  return state.expenses.filter((expense) => expense.id !== expenseToRemove.id);
+}
+
+function calculateNewValue(state, action, sum) {
+  if (sum) {
+    const { ask } = action.expense.exchangeRates[action.expense.currency];
+
+    const expenseValue = Number(action.expense.value) * Number(ask);
+    return state.totalExpenses + expenseValue;
+  }
+  const { ask } = action.expense.exchangeRates[action.expense.currency];
+
+  const expenseValue = Number(action.expense.value) * Number(ask);
+  return state.totalExpenses - expenseValue;
+}
+
+function editExpenses(state, action) {
+  let expensesToEdit = [...state.expenses];
+  expensesToEdit = expensesToEdit.map((expense) => {
+    if (Number(expense.id) === Number(state.idToEdit)) {
+      return { ...expense, ...action.editedExpense };
+    }
+    return expense;
+  });
+
+  let sum = 0;
+
+  expensesToEdit.forEach((expense) => {
+    const value = Number(expense.value)
+      * Number(expense.exchangeRates[expense.currency].ask);
+    sum += value;
+  });
+
+  return {
+    ...state,
+    expenses: expensesToEdit,
+    isEditing: false,
+    idToEdit: 0,
+    totalExpenses: sum,
+  };
+}
 
 const wallet = (state = INITIAL_STATE, action) => {
   switch (action.type) {
@@ -19,16 +80,9 @@ const wallet = (state = INITIAL_STATE, action) => {
     };
   }
   case ADD_EXPENSE: {
-    const id = state.expenses.length;
-    const newExpenses = [...state.expenses];
-    const expenseToAdd = action.expense;
-    expenseToAdd.id = id;
-    newExpenses.push(expenseToAdd);
+    const newExpenses = addExpenseToArray(state, action);
 
-    const { ask } = expenseToAdd.exchangeRates[expenseToAdd.currency];
-
-    const expenseValue = Number(expenseToAdd.value) * Number(ask);
-    const newTotal = state.totalExpenses + expenseValue;
+    const newTotal = calculateNewValue(state, action, true);
 
     return {
       ...state,
@@ -38,23 +92,26 @@ const wallet = (state = INITIAL_STATE, action) => {
   }
 
   case REMOVE_EXPENSE: {
-    const expenseToRemove = action.expense;
+    const newExpenses = removeExpenseFromArray(state, action);
 
-    const newExpenses = state.expenses.filter(
-      (expense) => expense.id !== expenseToRemove.id,
-    );
-
-    const { ask } = expenseToRemove.exchangeRates[expenseToRemove.currency];
-
-    const expenseValue = Number(expenseToRemove.value) * Number(ask);
-
-    const newTotal = state.totalExpenses - expenseValue;
+    const newTotal = calculateNewValue(state, action, false);
 
     return {
       ...state,
       expenses: newExpenses,
       totalExpenses: newTotal,
     };
+  }
+
+  case SET_IS_EDITING: {
+    return {
+      ...state,
+      isEditing: true,
+      idToEdit: action.id,
+    };
+  }
+  case EDIT_EXPENSE: {
+    return editExpenses(state, action);
   }
   default:
     return state;
